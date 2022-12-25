@@ -8,15 +8,18 @@ int s4 = A1;
 const int s1 = 10;//right
 const int s2 = 8;//mid
 const int s3 = 7;//left
-const int but = 4;
+const int pb = 4;
 const int arr = 2;
 //states of sensors, button and start module
 int sts1; 
 int sts2; 
 int sts3; 
 int sts4;
-int stb; 
-int sta;
+int stpb; 
+int starr;
+//indicator
+const int led = 13;
+int count = 0;
 
 void setup() 
 {
@@ -28,17 +31,28 @@ void setup()
   pinMode(s2,INPUT);
   pinMode(s3,INPUT);
   pinMode(s4,INPUT);
-  pinMode(but,INPUT);
+  pinMode(pb,INPUT);
   pinMode(arr,INPUT);
+  pinMode(led,OUTPUT);
 }
 
 void loop() 
-{
-  stb = digitalRead(but); 
-  sta = digitalRead(arr);
+{ 
+  starr = digitalRead(arr);
+  while (starr == LOW) 
+  {
+    starr = digitalRead(arr);
+    stpb = digitalRead(pb); 
+    if(stpb == HIGH)
+    {
+      digitalWrite(led,HIGH);
+      count=count+1;
+      delay(300);
+      digitalWrite(led,LOW);
+    }
+  }
 
-  while (sta == LOW) sta = digitalRead(arr);
-  while(sta == HIGH)
+  while(starr == HIGH)
   {
     for(int i=0; i<180000; i++)
     {
@@ -46,12 +60,40 @@ void loop()
       sts2 = digitalRead(s2);
       sts3 = digitalRead(s3);
       sts4 = analogRead(s4);
-      if(sts4 <= 60)
-      {
-        move();
-      }else{atacar();}
-      sta = digitalRead(arr);
-      if(sta==LOW)break;
+        if(count == 0)
+        {
+          if(sts4 <= 60)
+          {
+            move();
+          }else{atacar();}
+          starr = digitalRead(arr);
+          if(starr==LOW){count=0;break;}
+        }
+
+        else if(count == 1)
+        {
+          if(sts4 <= 60)
+          {
+            move();
+          }else{handR();}
+          starr = digitalRead(arr);
+          if(starr==LOW){count=0;break;}
+        }
+
+        else if(count == 2)
+        {
+          if(sts4 <= 60)
+          {
+            move();
+          }else{handL();}
+          starr = digitalRead(arr);
+          if(starr==LOW){count=0;break;}
+        }
+        
+        else if(count >= 3)
+        {
+          count=0;
+        }
       delay(1);
     }
   }
@@ -62,7 +104,7 @@ void atacar()
 {
   if ((sts1 == HIGH) && (sts2 == HIGH) && (sts3 == HIGH))
   {
-    forwards(50);
+    forwards(85);
   }
   else
   {
